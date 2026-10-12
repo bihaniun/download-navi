@@ -40,11 +40,15 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.ViewTreeObserver;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.SeekBar;
 import android.widget.Toast;
+
+import java.util.List;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -52,6 +56,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.PopupMenu;
 import androidx.databinding.DataBindingUtil;
 import androidx.databinding.Observable;
 import androidx.databinding.library.baseAdapters.BR;
@@ -493,6 +498,7 @@ public class AddDownloadDialog extends DialogFragment {
         binding.folderChooserButton.setOnClickListener((v) ->
             chooseDir.launch(viewModel.params.getDirPath())
         );
+        binding.recentFoldersButton.setOnClickListener((v) -> showRecentFoldersMenu(v));
         binding.urlClipboardButton.setOnClickListener((v) ->
                 showClipboardDialog(TAG_URL_CLIPBOARD_DIALOG));
         binding.checksumClipboardButton.setOnClickListener((v) ->
@@ -805,6 +811,7 @@ public class AddDownloadDialog extends DialogFragment {
                 try {
                     viewModel.fs.takePermissions(uri);
                     viewModel.params.setDirPath(uri);
+                    viewModel.addRecentDownloadDir(uri);
                 } catch (Exception e) {
                     Log.e(TAG, "Unable to open directory: " + Log.getStackTraceString(e));
                     showOpenDirErrorDialog();
@@ -850,6 +857,51 @@ public class AddDownloadDialog extends DialogFragment {
 
             openDirErrorDialog.show(fm, TAG_OPEN_DIR_ERROR_DIALOG);
         }
+    }
+
+    private void showRecentFoldersMenu(View anchor)
+    {
+        if (!isAdded() || anchor == null)
+            return;
+        PopupMenu popup = new PopupMenu(anchor.getContext(), anchor);
+        List<Uri> recent = viewModel.getRecentDownloadDirs();
+        for (int i = 0; i < recent.size(); i++) {
+            Uri uri = recent.get(i);
+            String name = null;
+            try {
+                name = viewModel.fs.getDirName(uri);
+            } catch (Exception ignored) {}
+            if (TextUtils.isEmpty(name)) {
+                name = uri.toString();
+            }
+            popup.getMenu().add(0, i, i, name);
+        }
+        // Add a separator (disabled item)
+        MenuItem separator = popup.getMenu().add(0, Menu.NONE, recent.size(), "");
+        separator.setEnabled(false);
+        // Add the "Choose other folder" item
+        popup.getMenu().add(0, android.R.id.selectAll, recent.size() + 1, R.string.choose_other_folder);
+        popup.setOnMenuItemClickListener((MenuItem menuItem) -> {
+            if (menuItem.getItemId() == android.R.id.selectAll) {
+                chooseDir.launch(viewModel.params.getDirPath());
+                return true;
+            }
+            int idx = menuItem.getItemId();
+            if (idx >= 0 && idx < recent.size()) {
+                Uri selected = recent.get(idx);
+                try {
+                    viewModel.fs.takePermissions(selected);
+                    viewModel.params.setDirPath(selected);
+                    viewModel.addRecentDownloadDir(selected);
+                } catch (Exception e) {
+                    Log.e(TAG, "Unable to open directory: " + Log.getStackTraceString(e));
+                    showOpenDirErrorDialog();
+                }
+                return true;
+            }
+            return false;
+        });
+        popup.show();
     }
 
     private void showInvalidUrlDialog()

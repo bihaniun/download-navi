@@ -115,11 +115,23 @@
                     android:layout_height="wrap_content"
                     android:layout_centerVertical="true"
                     android:layout_marginStart="8dp"
-                    android:layout_alignParentEnd="true"
+                    android:layout_toStartOf="@id/recent_folders_button"
                     android:padding="8dp"
                     android:background="?attr/dialogRoundRipple"
                     android:contentDescription="@string/dir_chooser_title"
                     android:src="@drawable/ic_folder_grey600_24dp" />
+
+                <ImageButton
+                    android:id="@+id/recent_folders_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:layout_marginStart="8dp"
+                    android:layout_alignParentEnd="true"
+                    android:padding="8dp"
+                    android:background="?attr/dialogRoundRipple"
+                    android:contentDescription="@string/recent_folders"
+                    android:src="@drawable/ic_more_vert_grey600_24dp" />
             </RelativeLayout>
 
             <TextView

@@ -70,6 +70,13 @@
 
     <!-- Filemanager settings -->
     <string name="pref_key_filemanager_last_dir" translatable="false">pref_key_filemanager_last_dir</string>
+    <!-- Recent download directories -->
+    <string name="pref_key_recent_download_dirs_count" translatable="false">pref_key_recent_download_dirs_count</string>
+    <string name="pref_key_recent_download_dir_0" translatable="false">pref_key_recent_download_dir_0</string>
+    <string name="pref_key_recent_download_dir_1" translatable="false">pref_key_recent_download_dir_1</string>
+    <string name="pref_key_recent_download_dir_2" translatable="false">pref_key_recent_download_dir_2</string>
+    <string name="pref_key_recent_download_dir_3" translatable="false">pref_key_recent_download_dir_3</string>
+    <string name="pref_key_recent_download_dir_4" translatable="false">pref_key_recent_download_dir_4</string>
 
     <string name="pref_key_ask_disable_battery_optimization" translatable="false">pref_key_ask_disable_battery_optimization</string>
     <string name="pref_key_ask_notification_permission" translatable="false">pref_key_ask_notification_permission</string>

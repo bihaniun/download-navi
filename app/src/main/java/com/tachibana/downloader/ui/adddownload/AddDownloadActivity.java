@@ -40,6 +40,8 @@ import com.tachibana.downloader.ui.BaseAlertDialog;
 import com.tachibana.downloader.ui.BatteryOptimizationDialog;
 import com.tachibana.downloader.ui.FragmentCallback;
 
+import java.util.List;
+
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
 
@@ -129,8 +131,21 @@ public class AddDownloadActivity extends AppCompatActivity
         if (params.url == null) {
             params.url = getUrlFromIntent();
         }
-        if (params.dirPath == null) {
-            params.dirPath = Uri.parse(pref.saveDownloadsIn());
+        if (params.dirPath != null) {
+            try {
+                pref.addRecentDownloadDir(params.dirPath);
+            } catch (Exception ignored) {}
+        } else {
+            try {
+                List<Uri> recent = pref.getRecentDownloadDirs();
+                if (!recent.isEmpty()) {
+                    params.dirPath = recent.get(0);
+                } else {
+                    params.dirPath = Uri.parse(pref.saveDownloadsIn());
+                }
+            } catch (Exception ignored) {
+                params.dirPath = Uri.parse(pref.saveDownloadsIn());
+            }
         }
         if (params.retry == null) {
             params.retry = localPref.getBoolean(

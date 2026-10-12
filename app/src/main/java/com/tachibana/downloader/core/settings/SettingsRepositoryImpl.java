@@ -23,6 +23,7 @@ package com.tachibana.downloader.core.settings;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.media.RingtoneManager;
+import android.net.Uri;
 import android.preference.PreferenceManager;
 
 import androidx.annotation.NonNull;
@@ -38,10 +39,13 @@ import io.reactivex.BackpressureStrategy;
 import io.reactivex.Flowable;
 import io.reactivex.disposables.Disposables;
 
+import java.util.List;
+
 public class SettingsRepositoryImpl implements SettingsRepository
 {
     private final Context appContext;
     private final SharedPreferences pref;
+    private static final int MAX_RECENT_DIRS = 5;
 
     private static class Default
     {
@@ -736,19 +740,6 @@ public class SettingsRepositoryImpl implements SettingsRepository
     }
 
     @Override
-    public void askDisableBatteryOptimization(boolean val) {
-        pref.edit()
-                .putBoolean(appContext.getString(R.string.pref_key_ask_disable_battery_optimization), val)
-                .apply();
-    }
-
-    @Override
-    public boolean askDisableBatteryOptimization() {
-        return pref.getBoolean(appContext.getString(R.string.pref_key_ask_disable_battery_optimization),
-                Default.askDisableBatteryOptimization);
-    }
-
-    @Override
     public boolean askNotificationPermission() {
         return pref.getBoolean(appContext.getString(R.string.pref_key_ask_notification_permission),
                 Default.askNotificationPermission);
@@ -760,4 +751,91 @@ public class SettingsRepositoryImpl implements SettingsRepository
                 .putBoolean(appContext.getString(R.string.pref_key_ask_notification_permission), val)
                 .apply();
     }
+
+    @Override
+    public boolean askDisableBatteryOptimization() {
+        return pref.getBoolean(appContext.getString(R.string.pref_key_ask_disable_battery_optimization),
+                Default.askDisableBatteryOptimization);
+    }
+
+    @Override
+    public void askDisableBatteryOptimization(boolean val) {
+        pref.edit()
+                .putBoolean(appContext.getString(R.string.pref_key_ask_disable_battery_optimization), val)
+                .apply();
+    }
+
+    @Override
+    public java.util.List<android.net.Uri> getRecentDownloadDirs()
+    {
+        java.util.ArrayList<android.net.Uri> list = new java.util.ArrayList<>();
+        int count = pref.getInt(appContext.getString(R.string.pref_key_recent_download_dirs_count), 0);
+        for (int i = 0; i < count && i < MAX_RECENT_DIRS; i++) {
+            String key = getRecentDirKey(i);
+            String val = pref.getString(key, null);
+            if (val != null && !val.isEmpty()) {
+                try {
+                    list.add(android.net.Uri.parse(val));
+                } catch (Exception ignored) {}
+            }
+        }
+        return list;
+    }
+
+    @Override
+    public void addRecentDownloadDir(@androidx.annotation.NonNull android.net.Uri uri)
+    {
+        if (uri == null) return;
+        String uriStr = uri.toString();
+        java.util.ArrayList<String> dirs = new java.util.ArrayList<>();
+        int count = pref.getInt(appContext.getString(R.string.pref_key_recent_download_dirs_count), 0);
+        for (int i = 0; i < count && i < MAX_RECENT_DIRS; i++) {
+            String key = getRecentDirKey(i);
+            String val = pref.getString(key, null);
+            if (val != null && !val.isEmpty() && !val.equals(uriStr)) {
+                dirs.add(val);
+            }
+        }
+        java.util.ArrayList<String> newList = new java.util.ArrayList<>();
+        newList.add(uriStr);
+        newList.addAll(dirs);
+        if (newList.size() > MAX_RECENT_DIRS) {
+            newList = new java.util.ArrayList<>(newList.subList(0, MAX_RECENT_DIRS));
+        }
+        android.content.SharedPreferences.Editor editor = pref.edit();
+        editor.putInt(appContext.getString(R.string.pref_key_recent_download_dirs_count), newList.size());
+        for (int i = 0; i < MAX_RECENT_DIRS; i++) {
+            String key = getRecentDirKey(i);
+            if (i < newList.size()) {
+                editor.putString(key, newList.get(i));
+            } else {
+                editor.remove(key);
+            }
+        }
+        editor.apply();
+    }
+
+    @Override
+    public void clearRecentDownloadDirs()
+    {
+        android.content.SharedPreferences.Editor editor = pref.edit();
+        editor.putInt(appContext.getString(R.string.pref_key_recent_download_dirs_count), 0);
+        for (int i = 0; i < MAX_RECENT_DIRS; i++) {
+            editor.remove(getRecentDirKey(i));
+        }
+        editor.apply();
+    }
+
+    private String getRecentDirKey(int index)
+    {
+        switch (index) {
+            case 0: return appContext.getString(R.string.pref_key_recent_download_dir_0);
+            case 1: return appContext.getString(R.string.pref_key_recent_download_dir_1);
+            case 2: return appContext.getString(R.string.pref_key_recent_download_dir_2);
+            case 3: return appContext.getString(R.string.pref_key_recent_download_dir_3);
+            case 4: return appContext.getString(R.string.pref_key_recent_download_dir_4);
+            default: return appContext.getString(R.string.pref_key_recent_download_dir_0);
+        }
+    }
 }
+    

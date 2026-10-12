@@ -20,7 +20,11 @@
 
 package com.tachibana.downloader.core.settings;
 
+import android.net.Uri;
+
 import io.reactivex.Flowable;
+
+import java.util.List;
 
 public interface SettingsRepository
 {
@@ -217,4 +221,10 @@ public interface SettingsRepository
     boolean askNotificationPermission();
 
     void askNotificationPermission(boolean val);
+
+    java.util.List<android.net.Uri> getRecentDownloadDirs();
+
+    void addRecentDownloadDir(@androidx.annotation.NonNull android.net.Uri uri);
+
+    void clearRecentDownloadDirs();
 }

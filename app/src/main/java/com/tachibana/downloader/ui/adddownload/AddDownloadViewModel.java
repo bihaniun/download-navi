@@ -201,6 +201,17 @@ public class AddDownloadViewModel extends AndroidViewModel
         return Completable.fromAction(() -> repo.addUserAgent(userAgent));
     }
 
+    public java.util.List<android.net.Uri> getRecentDownloadDirs()
+    {
+        return pref.getRecentDownloadDirs();
+    }
+
+    public void addRecentDownloadDir(android.net.Uri uri)
+    {
+        if (uri == null) return;
+        pref.addRecentDownloadDir(uri);
+    }
+
     public UserAgent getPrefUserAgent()
     {
         return new UserAgent(pref.userAgent());
